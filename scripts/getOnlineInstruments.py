@@ -38,7 +38,7 @@ propertyCodes = ['turbidityftu','turbidityntu','seawatertemperature','oxygen','p
 locationCodes = ['BACAX']
 
 
-## DAtetimes to run:
+## DAtetimes to run: - NOTE: Cannot mess with microseconds!! Only seconds!
 start_download = datetime(2019,12,16)
 end_download = datetime(2019,12,31)
 
@@ -79,8 +79,8 @@ data_exists = []
 for i_day in range(len(dates_array)-1):
     
     ## Modify the date on the parameters:
-    search_parameters['dateFrom'] = dates_array[i_day].astype('str') + 'Z'
-    search_parameters['dateTo'] = dates_array[i_day+1].astype('str') + 'Z'
+    search_parameters['dateFrom'] = dates_array[i_day].astype(datetime).strftime('%Y-%m-%dT%H:%M:%S') + '.000Z'
+    search_parameters['dateTo'] = dates_array[i_day+1].astype(datetime).strftime('%Y-%m-%dT%H:%M:%S') + '.000Z'
     
     print('running from %s to %s' % (search_parameters['dateFrom'],search_parameters['dateTo']))
 
