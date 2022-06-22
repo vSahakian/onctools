@@ -224,7 +224,7 @@ def download_data(download_parameter_dictionary,outPath,numbertries):
     status_counter = 0
     
     ## As long as the status is not downloading, keep trying...
-    while status_code_check == False:
+    while (status_code_check == False) and (status_counter <= numbertries):
         print('trying download')
         with closing(requests.get(url,params=download_parameter_dictionary,stream=True)) as streamResponse:
             ## If the HTML response is 200, everything downloaded, so save the data.
@@ -267,6 +267,7 @@ def download_data(download_parameter_dictionary,outPath,numbertries):
                             try:
                                 for block in streamResponse.iter_content(1024):
                                     handle.write(block)
+                                    error = 'None'
                             except KeyboardInterrupt:
                                 print('Process interupted: Deleting {}'.format(filePath))
                                 handle.close()
@@ -281,31 +282,36 @@ def download_data(download_parameter_dictionary,outPath,numbertries):
                         
                         ## Error message:
                         error = 'File already exists'
-                        continue
+                        break
                     
                 except:
                     msg = 'Error streaming response.'
                     print(msg)
+                    filePath = 'No file'
                     
                     continue
             else:
-                filePath = None
-                if(streamResponse.status_code in [202,204,400,404,410]) and (status_counter <=15):
+                filePath = 'No file'
+                if((streamResponse.status_code in [202,204,400,404,410]) and (status_counter <= numbertries)):
                     payload = json.loads(str(streamResponse.content,'utf-8'))
                     if len(payload) >= 1:
-                        msg = payload['message']
+                        try:
+                            msg = payload['message']
+                        except:
+                            msg = 'No message available'
                         
                         ## Save and print error message
                         error = 'HTTP {} - {}: {}'.format(streamResponse.status_code,streamResponse.reason,msg)
                         print(error)
                         
                         ## add to try counter:
-                        status_counter +=1
+                    status_counter +=1
+                    continue
                         
                 elif status_counter > numbertries:
                     print('Tried %i times, moving on...' % numbertries)
                     error = 'surpassed download try limit'
-                    continue
+                    break
                     
                 else:
                     ## Error message:

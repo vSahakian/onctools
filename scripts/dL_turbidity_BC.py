@@ -38,17 +38,17 @@ turbidity_codes_path = '/Users/vjs/turbidites/observational/data/onc_codes/prope
 
 
 ## Test download path:
-data_dir = '/Users/vjs/turbidites/observational/data/temp'
+data_dir = '/Users/vjs/turbidites/observational/data/december2019_BACAX_ntu'
 
 ## codes etc. to search for
 propertyCodes = ['turbidityftu','turbidityntu','seawatertemperature','oxygen','pressure','chlorophyll']
 locationCodes = ['BACAX']
 
 ## Number of download tries:
-download_tries = 15
+download_tries = 20
 
 ## DAtetimes to run:
-start_download = datetime(2019,12,16)
+start_download = datetime(2019,12,1)
 end_download = datetime(2019,12,31)
 
 
@@ -97,10 +97,10 @@ filePath = []
 for i_day in range(len(dates_array)-1):
     
     ## Modify the date on the parameters:
-    search_parameters['dateFrom'] = dates_array[i_day].astype('str') + 'Z'
-    search_parameters['dateTo'] = dates_array[i_day+1].astype('str') + 'Z'
+    search_parameters['dateFrom'] = dates_array[i_day].astype(datetime).strftime('%Y-%m-%dT%H:%M:%S') + '.000Z'
+    search_parameters['dateTo'] = dates_array[i_day+1].astype(datetime).strftime('%Y-%m-%dT%H:%M:%S') + '.000Z'
     
-    print('running from %s to %s' % (search_parameters['dateFrom'],search_parameters['dateTo']))
+    print('\n \n ##### running from %s to %s' % (search_parameters['dateFrom'],search_parameters['dateTo']))
 
 
     ## STEP 1: Run the data product delivery
@@ -139,7 +139,7 @@ for i_day in range(len(dates_array)-1):
     ## Append to arrays:
     download_error.append(i_download_error)
     dL_status_counter.append(i_status_counter)
-    filePath = filePath.append(i_filePath)
+    filePath.append(i_filePath)
     
 ## Make data exists an array:
 data_exists = np.array(data_exists)
