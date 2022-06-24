@@ -16,6 +16,7 @@ import os
 from contextlib import closing
 import errno
 import sys
+import time
 
 # %%
 ## Example parameter dictionary
@@ -302,7 +303,10 @@ def download_data(download_parameter_dictionary,outPath,numbertries):
                         
                         ## Save and print error message
                         error = 'HTTP {} - {}: {}'.format(streamResponse.status_code,streamResponse.reason,msg)
-                        print(error)
+                        
+                        ## Only print if the number of tries is a multiple of 5:
+                        if status_counter % 5 == 0:
+                            print('on %ith try, %s' % (status_counter,error))
                         
                         ## add to try counter:
                     status_counter +=1
@@ -323,3 +327,87 @@ def download_data(download_parameter_dictionary,outPath,numbertries):
     return error, status_counter, filePath
 
 
+# %% FUNCTION
+def batch_test_and_download(search_params_list,presearch_parameter_df,search_indices,token,data_dir,download_tries,metadata_path_suffix='v0',sleeptime=10):
+    '''
+    Searches for (data exists), and downloads 
+    
+    Input:
+        search_params_list:             A list with the parameters to search
+        presearch_parameter_df:         A dataframe of search parameters to loop through
+        search_indices:                 A list/array with the indices of the search dataframe to search/download
+        token:                          String with ONC token
+        data_dir:                       String with the data directory to store things in
+        download_tries:                 Integer with the number of download attempts before moving on
+        metadata_path_suffix:           String to append to the end of the download_metadata csv file. Default: v0
+        sleeptime:                      Number of seconds to wait/sleep in between tests if get a 202. Default: 10 seconds.
+    Output:
+        postsearch_parameter_df:        A dataframe with metadata after the search
+    '''
+    
+    ## Set warning to be OFF for copy thing...
+    import pandas as pd
+    pd.options.mode.chained_assignment = None  # default='warn'
+    
+    #################################################################
+    ## Before going in, make a new data frame that is a copy:
+    parameter_df = presearch_parameter_df.copy(deep=True)
+    
+    ## Run through the search indices
+    for i_day in search_indices:
+        
+        ## Get the search parameters:
+        i_search_parameters_full = presearch_parameter_df.loc[i_day].to_dict()
+        i_search_parameters = { key:value for key,value in i_search_parameters_full.items() if key in search_params_list}
+            
+        print('\n \n ##### running from %s to %s' % (i_search_parameters['dateFrom'],i_search_parameters['dateTo']))
+    
+    
+        ## STEP 1: Run the data product delivery
+        print('running data product delivery')
+        i_delivery_requestInfo, i_delivery_error, i_data_exists = data_product_delivery(i_search_parameters)
+        
+        ## Append to master dataframe:
+        parameter_df['delivery_error'][i_day] = i_delivery_error
+        parameter_df['data_exists'][i_day] = i_data_exists
+    
+        
+        ## If there is no data, continue on to the next part of hte loop:
+        if i_data_exists == False:
+            continue
+        
+        else:
+            ## STEP 2: Make a dictionary to run a data product request
+            i_request_parameter_dictionary = make_request_dictionary(token,i_delivery_requestInfo)
+            
+            ## Run the data product request
+            print('running data product request')
+            i_product_request, i_request_error, i_request_ok = data_product_request(i_request_parameter_dictionary)
+            
+            ## Append to master dataframe:
+            parameter_df['request_error'][i_day] = i_request_error
+            parameter_df['request_ok'][i_day] = i_request_ok
+                      
+            ## STEP 3: Make a dictionary to run the download
+            i_request_index = 0
+            i_download_parameter_dictionary = make_download_dictionary(token,i_product_request,i_request_index)
+            
+            ## Run the download...
+            print('attempting download...')
+            i_download_error, i_status_counter,i_filePath = download_data(i_download_parameter_dictionary,data_dir,download_tries)
+        
+            ## Append to master dataframe:
+            parameter_df['download_error'][i_day] = i_download_error
+            parameter_df['dL_status_counter'][i_day] = i_status_counter
+            parameter_df['filePath'][i_day] = i_filePath
+            
+            ## If data actually downloaded, add a 10 second sleep:
+            # if i_filePath != 'No file':
+            print('Sleeping %i seconds before next attempt' % sleeptime)
+            time.sleep(sleeptime)    
+        
+    ## Save to a post search metadata file 
+    parameter_df.to_csv(data_dir + '/metadata/download_metadata_' + metadata_path_suffix + '.csv')
+    
+    ## Return:
+    return parameter_df

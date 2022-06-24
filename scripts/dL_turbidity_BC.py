@@ -38,17 +38,23 @@ turbidity_codes_path = '/Users/vjs/turbidites/observational/data/onc_codes/prope
 
 
 ## Test download path:
-data_dir = '/Users/vjs/turbidites/observational/data/december2019_BACAX_ntu'
+data_dir = '/Users/vjs/turbidites/observational/data/BACAX_ntu_2019'
 
 ## codes etc. to search for
-propertyCodes = ['turbidityftu','turbidityntu','seawatertemperature','oxygen','pressure','chlorophyll']
-locationCodes = ['BACAX']
+#$propertyCodes = ['turbidityftu','turbidityntu','seawatertemperature','oxygen','pressure','chlorophyll']
+#locationCodes = ['BACAX']
+
+propertyCode = 'turbidityntu'
+locationCode = 'BACAX'
 
 ## Number of download tries:
-download_tries = 20
+download_tries = 40
+
+## sleep time in seconds, in between bad 202 responses:
+sleeptime = 10
 
 ## DAtetimes to run:
-start_download = datetime(2019,12,1)
+start_download = datetime(2019,1,1)
 end_download = datetime(2019,12,31)
 
 
@@ -58,7 +64,8 @@ onc = ONC(token)
  
 
 ## Make download array:
-dates_array = np.arange(start_download,end_download,timedelta(days=1))
+start_dates_array = np.arange(start_download,end_download,timedelta(days=1))
+end_dates_array = np.arange(start_download+(timedelta(days=1)),end_download+(timedelta(days=1)),timedelta(days=1))
 
 ## Parameter dictionariy:
 search_parameters = {'method':'request',
@@ -74,96 +81,96 @@ search_parameters = {'method':'request',
             'dpo_average':60,                   # Resampling average, 60=1 minutes
             'dpo_dataGaps':0}                   # The Data Gaps data product option - See https://wiki.oceannetworks.ca/display/DP/1
 
- 
 # %%
-## Test download...
 
-## Set up empty arrays for table
-delivery_requestInfo = []
-product_request = []
+## Make download table to loop through.
+## Get number of days to try to download:
+numdays = len(start_dates_array)
 
+## First, Convert hte times to strings in the appropriate format:
+string_start_array = []
+string_end_array = []
 
-delivery_error = []
-request_error = []
-download_error = []
-
-
-data_exists = []
-request_ok = []
-dL_status_counter = []
-filePath = []
-
-
-for i_day in range(len(dates_array)-1):
+## Convert the dates to the appropriate format:
+for i_row in range(numdays):
+    i_date_from = start_dates_array[i_row]
+    i_date_to = end_dates_array[i_row]
     
-    ## Modify the date on the parameters:
-    search_parameters['dateFrom'] = dates_array[i_day].astype(datetime).strftime('%Y-%m-%dT%H:%M:%S') + '.000Z'
-    search_parameters['dateTo'] = dates_array[i_day+1].astype(datetime).strftime('%Y-%m-%dT%H:%M:%S') + '.000Z'
-    
-    print('\n \n ##### running from %s to %s' % (search_parameters['dateFrom'],search_parameters['dateTo']))
+    string_start_array.append(i_date_from.astype(datetime).strftime('%Y-%m-%dT%H:%M:%S') + '.000Z')
+    string_end_array.append(i_date_to.astype(datetime).strftime('%Y-%m-%dT%H:%M:%S') + '.000Z')
 
 
-    ## STEP 1: Run the data product delivery
-    print('running data product delivery')
-    i_delivery_requestInfo, i_delivery_error, i_data_exists = odm.data_product_delivery(search_parameters)
-    
-    ## Append to arrays:
-    delivery_requestInfo.append(i_delivery_requestInfo)
-    delivery_error.append(i_delivery_error)
-    data_exists.append(i_data_exists)
-    
-    ## If there is no data, continue on to the next part of hte loop:
-    if i_data_exists == False:
-        continue
-    
-    ## STEP 2: Make a dictionary to run a data product request
-    i_request_parameter_dictionary = odm.make_request_dictionary(token,i_delivery_requestInfo)
-    
-    ## Run the data product request
-    print('running data product request')
-    i_product_request, i_request_error, i_request_ok = odm.data_product_request(i_request_parameter_dictionary)
-    
-    ## Append to arrays:
-    product_request.append(i_product_request)
-    request_error.append(i_request_error)
-    request_ok.append(i_request_ok)
-    
-    ## STEP 3: Make a dictionary to run the download
-    i_request_index = 0
-    i_download_parameter_dictionary = odm.make_download_dictionary(token,i_product_request,i_request_index)
-    
-    ## Run the download...
-    print('attempting download...')
-    i_download_error, i_status_counter,i_filePath = odm.download_data(i_download_parameter_dictionary,data_dir,download_tries)
 
-    ## Append to arrays:
-    download_error.append(i_download_error)
-    dL_status_counter.append(i_status_counter)
-    filePath.append(i_filePath)
-    
-## Make data exists an array:
-data_exists = np.array(data_exists)
 
 ## Create dataframe and save
-status_dict = {'method':np.full((len(dates_array)-1),'request'),
-               'token':np.full((len(dates_array)-1),token),    # replace YOUR_TOKEN_HERE with your personal token obtained from the 'Web Services API' tab at https://data.oceannetworks.ca/Profile when logged in.
-               'locationCode':np.full((len(dates_array)-1),'BACAX'),             # Barkley Canyon / Axis (POD 1)
-                'propertyCode':np.full((len(dates_array)-1),'turbidityntu'),    # 150 kHz Acoustic Doppler Current Profiler
-                'dataProductCode':np.full((len(dates_array)-1),'TSSD'),           # Time Series Scalar Data
-                'extension':np.full((len(dates_array)-1),'csv'),                  # Comma Separated spreadsheet file
-                'dateFrom':dates_array[0:-1],  # The datetime of the first data point (From Date)
-                'dateTo':dates_array[1:],    # The datetime of the last data point (To Date)
-                'dpo_qualityControl':np.full((len(dates_array)-1),1),             # The Quality Control data product option - See https://wiki.oceannetworks.ca/display/DP/1
-                'dpo_resample':np.full((len(dates_array)-1),'average'),              # The Resampling data product option - See https://wiki.oceannetworks.ca/display/DP/1
-                'dpo_average':np.full((len(dates_array)-1),60),                   # Resampling average, 60=1 minutes
-                'dpo_dataGaps':np.full((len(dates_array)-1),0),
-                'delivery_error':delivery_error,
-                'request_error':request_error,
-                'download_error':download_error,
-                'data_exists':data_exists,
-                'request_ok':request_ok,
-                'dL_status_counter':dL_status_counter,
-                'filePath':filePath} 
+parameter_dict = {'method':np.full(numdays,'request'),
+               'token':np.full(numdays,token),    # replace YOUR_TOKEN_HERE with your personal token obtained from the 'Web Services API' tab at https://data.oceannetworks.ca/Profile when logged in.
+               'locationCode':np.full(numdays,locationCode),             # Barkley Canyon / Axis (POD 1)
+                'propertyCode':np.full(numdays,propertyCode),    # 150 kHz Acoustic Doppler Current Profiler
+                'dataProductCode':np.full(numdays,'TSSD'),           # Time Series Scalar Data
+                'extension':np.full(numdays,'csv'),                  # Comma Separated spreadsheet file
+                'dateFrom':string_start_array,  # The datetime of the first data point (From Date)
+                'dateTo':string_end_array,    # The datetime of the last data point (To Date)
+                'dpo_qualityControl':np.full(numdays,1),             # The Quality Control data product option - See https://wiki.oceannetworks.ca/display/DP/1
+                'dpo_resample':np.full(numdays,'average'),              # The Resampling data product option - See https://wiki.oceannetworks.ca/display/DP/1
+                'dpo_average':np.full(numdays,60),                   # Resampling average, 60=1 minutes
+                'dpo_dataGaps':np.full(numdays,0),
+                'delivery_error':np.full(numdays,'None'),
+                'request_error':np.full(numdays,'None'),
+                'download_error':np.full(numdays,'None'),
+                'data_exists':np.full(numdays,False),    
+                'request_ok':np.full(numdays,False),
+                'dL_status_counter':np.full(numdays,0),
+                'filePath':np.full(numdays,'No file')} 
+ 
+## Convert to dataframe
+presearch_parameter_df = pd.DataFrame(parameter_dict)
 
-status_df = pd.DataFrame(status_dict)
-status_df.to_csv(data_dir + '/download_metadata.csv')
+## Save to a pre-download file
+presearch_parameter_df.to_csv(data_dir + '/metadata/pre_download_metadata.csv')
+
+
+# %%
+## Download, v0. Attempt all.
+
+## Search parmaeters needed:
+search_params_list = ['method','token','locationCode','propertyCode','dataProductCode','extension','dateFrom','dateTo','dpo_qualityControl','dpo_resample','dpo_average','dpo_dataGaps']
+search_indices_v0 = np.arange(numdays)
+
+## Searcha nd download...
+print('RUNNING SEARCH V0 ')
+postsearch_v0_parameter_df = odm.batch_test_and_download(search_params_list,presearch_parameter_df,search_indices_v0,token,data_dir,download_tries)
+
+
+# %% SECOND TIME TO RUN: 
+## Run where data exist, and where there is no file.
+search_indices_v1 = np.where((postsearch_v0_parameter_df['data_exists'] == True) & (postsearch_v0_parameter_df['filePath'] == 'No file'))[0]
+metadata_path_suffix = 'v1'
+
+## Search:
+postsearch_v1_parameter_df = odm.batch_test_and_download(search_params_list,postsearch_v0_parameter_df,search_indices_v1,token,data_dir,download_tries,metadata_path_suffix)
+
+
+    
+# %% THIRD TIME TO RUN: 
+## Run where data exist, and where there is no file.
+search_indices_v2 = np.where((postsearch_v1_parameter_df['data_exists'] == True) & (postsearch_v1_parameter_df['filePath'] == 'No file'))[0]
+metadata_path_suffix = 'v2'
+
+## Search:
+postsearch_v2_parameter_df = odm.batch_test_and_download(search_params_list,postsearch_v1_parameter_df,search_indices_v2,token,data_dir,download_tries,metadata_path_suffix)
+
+
+# %% FOURTH TIME TO RUN: 
+## Run where data exist, and where there is no file.
+search_indices_v3 = np.where((postsearch_v2_parameter_df['data_exists'] == True) & (postsearch_v2_parameter_df['filePath'] == 'No file'))[0]
+metadata_path_suffix = 'v3'
+
+## Search:
+print('Will run for %i records' % len(search_indices_v3))
+postsearch_v3_parameter_df = odm.batch_test_and_download(search_params_list,postsearch_v2_parameter_df,search_indices_v3,token,data_dir,download_tries,metadata_path_suffix)
+
+
+    
+    
+
