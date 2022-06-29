@@ -38,7 +38,7 @@ turbidity_codes_path = '/Users/vjs/turbidites/observational/data/onc_codes/prope
 
 
 ## Test download path:
-data_dir = '/Users/vjs/turbidites/observational/data/BACAX_ntu_2019'
+data_dir = '/Users/vjs/turbidites/observational/data/sleeptest'
 
 ## codes etc. to search for
 #$propertyCodes = ['turbidityftu','turbidityntu','seawatertemperature','oxygen','pressure','chlorophyll']
@@ -54,7 +54,7 @@ download_tries = 40
 sleeptime = 10
 
 ## DAtetimes to run:
-start_download = datetime(2019,1,1)
+start_download = datetime(2019,12,16)
 end_download = datetime(2019,12,31)
 
 

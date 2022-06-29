@@ -310,6 +310,9 @@ def download_data(download_parameter_dictionary,outPath,numbertries):
                         
                         ## add to try counter:
                     status_counter +=1
+                    
+                    print('Sleeping %i seconds before next attempt' % 2)
+                    time.sleep(2) 
                     continue
                         
                 elif status_counter > numbertries:
