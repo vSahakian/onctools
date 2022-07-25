@@ -97,11 +97,12 @@ def make_download_dictionary(token,request_response,request_index):
 
 # %% Ask for a data product delivery, given search paramters. Makes a response which
 ##   is then Ran in a Data Run Request...
-def data_product_delivery(delivery_parameter_dictionary):
+def data_product_delivery(delivery_parameter_dictionary,verbose=True):
     '''
     Ask for a data product delivery with given search parameters. 
     Input:
         delivery_parameter_dictionary:       Parameter dictionary (see above)
+        verbose:                             Boolean with whether or not to print everything. DEfault: True (verbose)
     Output:
         requestInfo:                        Object with information about request to use for download)
         Error:                              Error message if no data exists)
@@ -122,25 +123,26 @@ def data_product_delivery(delivery_parameter_dictionary):
         data_exists = True
         error = 'None' 
         
-        print('Request Id: {}'.format(requestInfo['dpRequestId']))      # Print the Request Id
+        if verbose == True:
+            print('Request Id: {}'.format(requestInfo['dpRequestId']))      # Print the Request Id
+             
+            if ('numFiles' in requestInfo.keys()):
+                print('File Count: {}'.format(requestInfo['numFiles']))     # Print the Estimated File Size
+          
+            if ('fileSize' in requestInfo.keys()):
+                print('File Size: {}'.format(requestInfo['fileSize']))      # Print the Estimated File Size
+             
+            if 'downloadTimes' in requestInfo.keys():
+                print('Estimated download time:')
+                for e in sorted(requestInfo['downloadTimes'].items(),key=lambda t: t[1]):
+                    print('  {} - {} sec'.format(e[0],'{:0.2f}'.format(e[1])))
          
-        if ('numFiles' in requestInfo.keys()):
-            print('File Count: {}'.format(requestInfo['numFiles']))     # Print the Estimated File Size
-      
-        if ('fileSize' in requestInfo.keys()):
-            print('File Size: {}'.format(requestInfo['fileSize']))      # Print the Estimated File Size
          
-        if 'downloadTimes' in requestInfo.keys():
-            print('Estimated download time:')
-            for e in sorted(requestInfo['downloadTimes'].items(),key=lambda t: t[1]):
-                print('  {} - {} sec'.format(e[0],'{:0.2f}'.format(e[1])))
-     
-     
-        if 'estimatedFileSize' in requestInfo.keys():
-            print('Estimated File Size: {}'.format(requestInfo['estimatedFileSize']))
-                     
-        if 'estimatedProcessingTime' in requestInfo.keys():
-            print('Estimated Processing Time: {}'.format(requestInfo['estimatedProcessingTime']))
+            if 'estimatedFileSize' in requestInfo.keys():
+                print('Estimated File Size: {}'.format(requestInfo['estimatedFileSize']))
+                         
+            if 'estimatedProcessingTime' in requestInfo.keys():
+                print('Estimated Processing Time: {}'.format(requestInfo['estimatedProcessingTime']))
       
     else:
         ## Specify that there's no data:

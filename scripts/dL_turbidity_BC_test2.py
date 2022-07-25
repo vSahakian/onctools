@@ -42,7 +42,16 @@ data_dir = '/Users/vjs/turbidites/observational/data/sleeptest'
 
 ## codes etc. to search for
 #$propertyCodes = ['turbidityftu','turbidityntu','seawatertemperature','oxygen','pressure','chlorophyll']
-#locationCodes = ['BACAX']
+#locationCodes = ['BACAX','BACCH','BACHY','BACME','BACMW','BACND','BACUS']
+
+## KEY:
+    # BACAX:  Barkley Canyon Axis
+    # BACCH:  Barkley Canyon Head
+    # BACHY:  Barkley CAnyon Hydrates
+    # BACME:  Barkley Canyon MidEast
+    # BACMW:  Barkley Canyon MidWest
+    # BACND:  Barkley Canyon Node
+    # BACUS:  Barkley Canyon Upper Slope South
 
 propertyCode = 'turbidityntu'
 locationCode = 'BACAX'
@@ -54,7 +63,7 @@ download_tries = 40
 sleeptime = 10
 
 ## DAtetimes to run:
-start_download = datetime(2019,12,16)
+start_download = datetime(2019,1,1)
 end_download = datetime(2019,12,31)
 
 
