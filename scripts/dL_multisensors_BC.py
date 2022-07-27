@@ -18,7 +18,7 @@ import onc_download_module as odm
 online_locations_path =  '/home/dkilb/barkley/data/onlineInstruments_all.csv'
 
 ## Download directory:
-data_dir = '/home/dkilb/barkley/data'
+data_dir = '/home/dkilb/barkley/data/'
 
 ## codes etc. to search for
 #$propertyCodes = ['turbidityftu','turbidityntu','seawatertemperature','oxygen','pressure','chlorophyll']
