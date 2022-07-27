@@ -7,12 +7,10 @@ Created on Mon May 23 16:13:57 2022
 """
 from onc.onc import ONC
 import requests
-import tkinter as tk
 from appdirs import user_data_dir
 import os
 #root = tk.Tk()  
 import json
-import os
 from contextlib import closing
 import errno
 import sys

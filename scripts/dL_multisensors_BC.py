@@ -9,32 +9,16 @@ Created on Tue Jun  7 16:12:07 2022
 ## Code to download turbidity data in Barkley canyon for finite chunk
 import numpy as np
 from onc.onc import ONC
-import requests
-import re
-import tkinter as tk
-from appdirs import user_data_dir
 import os
-#root = tk.Tk()  
 import pandas as pd
-import requests
-import json
-import os
-from contextlib import closing
-import errno
-import sys
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-from matplotlib.dates import DateFormatter
-from datetime import datetime, timedelta
-
 import onc_download_module as odm
 
 # %% Paths
-online_locations_path =  '/Users/vjs/turbidites/observational/data/getOnlineInstruments_jul15//onlineInstruments_all.csv'
-
+#online_locations_path =  '/Users/vjs/turbidites/observational/data/getOnlineInstruments_jul15/onlineInstruments_all.csv'
+online_locations_path =  '/home/dkilb/barkley/data/onlineInstruments_all.csv'
 
 ## Download directory:
-data_dir = '/Users/vjs/turbidites/observational/data/barkleycanyon/'
+data_dir = '/home/dkilb/barkley/data'
 
 ## codes etc. to search for
 #$propertyCodes = ['turbidityftu','turbidityntu','seawatertemperature','oxygen','pressure','chlorophyll']
