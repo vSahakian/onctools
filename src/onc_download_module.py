@@ -204,13 +204,14 @@ def data_product_request(request_parameter_dictionary):
     return r, error, request_ok
         
 # %% Download the data. Saves to outPath
-def download_data(download_parameter_dictionary,outPath,numbertries):
+def download_data(download_parameter_dictionary,outPath,numbertries,inter_try_sleep_time=2):
     '''
     Download data from a data product request
     Input:
         download_parameter_dictionary:      Dictionary with download parameters, see example above
         outPath:                            Directory you would like the file to be downloaded to w/o slash
         numbertries:                        Integer with the number of download attempts before moving on
+        inter_try_sleep_time:               Integer with seconds to sleep in between tries
     Output:
         error:                              STring with error message if no download
         status_counter:                     Number of tries before it downloaded
@@ -228,6 +229,10 @@ def download_data(download_parameter_dictionary,outPath,numbertries):
     while (status_code_check == False) and (status_counter <= numbertries):
         print('trying download')
         with closing(requests.get(url,params=download_parameter_dictionary,stream=True)) as streamResponse:
+            
+            ## Add to the try status counter, for number of download tries.
+            status_counter +=1            
+            
             ## If the HTML response is 200, everything downloaded, so save the data.
             if streamResponse.status_code == 200: #OK
             
@@ -308,13 +313,18 @@ def download_data(download_parameter_dictionary,outPath,numbertries):
                         if status_counter % 5 == 0:
                             print('on %ith try, %s' % (status_counter,error))
                         
-                        ## add to try counter:
-                    status_counter +=1
                     
-                    print('Sleeping %i seconds before next attempt' % 2)
-                    time.sleep(2) 
+                    print('Sleeping %i seconds before next attempt' % inter_try_sleep_time)
+                    time.sleep(inter_try_sleep_time) 
                     continue
                         
+                ## IF it hits an error code/status code of 500,
+                elif streamResponse.status_code == 500:
+                    print('Status code 500, internal server error, moving on \n')
+                    error = 'Status code is 500, internal server error'
+                    time.sleep(inter_try_sleep_time)
+                    continue
+                
                 elif status_counter > numbertries:
                     print('Tried %i times, moving on...' % numbertries)
                     error = 'surpassed download try limit'
@@ -324,6 +334,9 @@ def download_data(download_parameter_dictionary,outPath,numbertries):
                     ## Error message:
                     error = 'Error {} - {}'.format(streamResponse.status_code,streamResponse.reason)
                     print (error)
+                    print('Sleeping %i seconds before next attempt' % inter_try_sleep_time)
+                    time.sleep(inter_try_sleep_time) 
+                    continue
      
     streamResponse.close()
     

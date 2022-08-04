@@ -40,7 +40,7 @@ download_locationCodes = ['BACAX','BACHY','BACMW','BACUS']
 download_tries = 40
 
 ## sleep time in seconds, in between bad 202 responses:
-sleeptime = 10
+sleeptime = 5
 
 
 ## Search parmaeters needed:
