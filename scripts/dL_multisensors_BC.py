@@ -12,6 +12,10 @@ from onc.onc import ONC
 import os
 import pandas as pd
 import onc_download_module as odm
+import logging, sys
+
+
+
 
 # %% Paths
 #online_locations_path =  '/Users/vjs/turbidites/observational/data/getOnlineInstruments_jul15/onlineInstruments_all.csv'
@@ -19,6 +23,9 @@ online_locations_path =  '/home/dkilb/barkley/data/onlineInstruments_all.csv'
 
 ## Download directory:
 data_dir = '/home/dkilb/barkley/data/'
+
+## Logfile path:
+logfile_path = '/home/dkilb/barkley/data/LOG_dLmultisensors_Bark_8_4_2022.log'
 
 ## codes etc. to search for
 #$propertyCodes = ['turbidityftu','turbidityntu','seawatertemperature','oxygen','pressure','chlorophyll']
@@ -46,6 +53,13 @@ sleeptime = 5
 ## Search parmaeters needed:
 search_params_list = ['method','token','locationCode','propertyCode','dataProductCode','extension','dateFrom','dateTo','dpo_qualityControl','dpo_resample','dpo_average','dpo_dataGaps']
 
+## Set up logging, so it gives only level name (like INFO), and the message (no root)
+logging.basicConfig(format='%(levelname)s:%(message)s',filename=logfile_path, level=logging.DEBUG)
+logger = logging.getLogger()
+
+## send both standard error and out here
+sys.stderr.write = logger.error
+sys.stdout.write = logger.info
 
 
 # %%  Get Token %% #
