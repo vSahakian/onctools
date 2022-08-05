@@ -61,6 +61,15 @@ logger = logging.getLogger()
 sys.stderr.write = logger.error
 sys.stdout.write = logger.info
 
+#### NOTE!! HACK JOB!!
+## A lot of data for BACAX turbidityntu were already downloaded. To avoid re=-doing those,
+## modify the search indices in the ij_location_propertydata, ONLY for bacax turbidityntu.
+## This index, to start on from ij_location_propertydata, is 3742, and should be 2021-09-17T00:00:00.000Z
+hackindex_bacax_turbityntu = 4473
+
+## The date:
+hackdate = '2021-09-17T00:00:00.000Z'
+
 
 # %%  Get Token %% #
 token = odm.Token()
@@ -123,6 +132,7 @@ for i_station_index in range(len(download_locationCodes)):
             print('No data for this instrument, moving on...')
             continue
         
+        
         ## If no data directory exists...
         ij_datadir = data_dir + i_station + '/' + j_property
         if os.path.exists(ij_datadir) == False:
@@ -133,11 +143,23 @@ for i_station_index in range(len(download_locationCodes)):
         ## Then, get the dataframe to use in the download:
         ## The indices:
         ij_search_indices = ij_location_property_data.index.values
+        
+        #### HACK JOB!!!!
+        ## If it's BACAX, and turbidityntu, a lot of data are already downloaded.
+        ## To avoid re=-doing those,
+        ## start from an index in the i_alldata_turbiditydates dataframe, ONLY for bacax turbidityntu.
+        if ((i_station == 'BACAX') & (j_property == 'turbidityntu')):
+            ij_hackdate_index = ij_location_property_data.loc[ij_location_property_data.dateFrom == hackdate].index[0]
+            ij_search_indices = ij_search_indices[np.where(ij_search_indices >= ij_hackdate_index)]
             
-        ## Write the preserarch dataframe to the metadata directory:
-            
-        ij_location_property_data.to_csv(ij_datadir + '/metadata/predownload_metadata_' + i_station + '_' + j_property + '.csv')
-        ## Search and get the post search dataframe:
+            ## Write the preserarch dataframe to the metadata directory:
+            ij_location_property_data.to_csv(ij_datadir + '/metadata/predownload_metadata_TRY2_' + i_station + '_' + j_property + '.csv')
+        
+        else:
+            ## Write the preserarch dataframe to the metadata directory:
+            ij_location_property_data.to_csv(ij_datadir + '/metadata/predownload_metadata_' + i_station + '_' + j_property + '.csv')
+        
+        ## Search, download, and get the post search dataframe:
         ij_postsearch_parameter_df = odm.batch_test_and_download(search_params_list,ij_location_property_data,ij_search_indices,token,ij_datadir,download_tries)
         
 # %%
