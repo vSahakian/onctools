@@ -427,3 +427,109 @@ def batch_test_and_download(search_params_list,presearch_parameter_df,search_ind
     
     ## Return:
     return parameter_df
+
+
+# %%
+# Convert dataframe from the csv file to a stream object
+def convert_df2stream(template_df,data_name,datetime_name='datetime',network='',station='',location='',channel='',force_sample_rate=[True,1/60]):
+    '''
+    Convert a dataframe with data to a stream object 
+    Input: 
+        dataframe:              Pandas dataframe with columns of date/time and data to convert
+        data_name:              String with the column name for the data 
+        datetime_name:          String with the column name for the datetime (default: 'datetime')
+        network:                String with the name of the network. Default: empty ('')
+        station:                String with the name of the station. Default: empty ('')
+        location:               String with the name of the location code. Default: empty ('')
+        channel:                String with the name of the channel or data type. Default: empty ('')
+        force_sample_rate:      List with [True/False, samplerate_Hz] of [0] whether to force sample rate and if so [1] the sample rate in Hz
+    Output:
+        data_stream:            Obspy stream object with the data
+    '''
+    
+    from scipy.stats import mode
+    import obspy as obs
+    import numpy as np
+    import pandas as pd
+    import numpy as np
+    from datetime import datetime, timedelta
+
+    ## Reset the indices in the dataframe, just inc ase:
+    template_df = template_df.reset_index(drop=True)
+    
+    ## If the sample rate is not forced, figure out what it should be:
+    if force_sample_rate[0] == False:
+        ## Get the sample rate in seconds - the mode of the difference of the 
+        ##      datetime column, as a secondstimedelta covnerted to integer:
+        mode_sample_rate_seconds = mode(np.diff(template_df[datetime_name])).mode.astype('timedelta64[s]').astype('int')
+        
+        ## Convert to Hz for the header:
+        mode_sample_rate_Hz = 1/mode_sample_rate_seconds
+    else:
+        mode_sample_rate_Hz = force_sample_rate[1]
+        
+        ## and also in seconds for later:
+        mode_sample_rate_seconds = 1/mode_sample_rate_Hz
+    
+    
+    ## Make the stats for the trace header:
+    trace_stats = {'network': network, 'station': station, 'location': location,
+             'channel': channel,
+             'sampling_rate': mode_sample_rate_Hz}
+             #'mseed': {'dataquality': 'D'}}
+    
+    
+    #### Find instances in the array where the sampling interval is not what is prescribed.
+    
+    ## Get the difference between each data point in seconds:
+    sampling_difference_seconds = np.diff(template_df[datetime_name]).astype('timedelta64[s]').astype('int')
+    ## Get locations where it's different from the prescibed/mode sample rate:
+    index_databreak = np.where(sampling_difference_seconds != mode_sample_rate_seconds)[0]
+    
+    ## If there are no data breaks (this is empty), it's all one trace:
+    if len(index_databreak) == 0:
+        ## First convert to a pandas datetime object, then get the first index, then format the same as ONC wants:
+        trace_starttime = pd.to_datetime(template_df[datetime_name]).loc[0].strftime('%Y-%m-%dT%H:%M:%S') + '.000Z'
+        trace_stats['starttime'] = trace_starttime
+        data_stream = obs.Stream([obs.Trace(data=template_df[data_name].values, header=trace_stats)])
+    
+    ## Otherwise, need to split it up by index
+    else:
+        data_stream = obs.Stream([])
+        
+        ## Make starting index array. 
+        ##  Databreak index is the first index before the data break, 
+        ##   so add 0 on front and add 1 to the rest of them
+        databreak_starting_index = np.append(0,(index_databreak+1))
+        
+        ## And ending index array - needs to end at the index after the databreak 
+        ##      because of python indexing - this index son't be included. 
+        #       Append length of time series as the last index to go to.
+        databreak_ending_index = np.append(index_databreak+1,len(template_df))
+            
+        ## Loop through the databreaks and separate into traces:
+        for i_databreak in range(len(databreak_starting_index)):
+
+            ## Define the trace as the data from the last data break to here:
+            i_start = databreak_starting_index[i_databreak]
+            i_end = databreak_ending_index[i_databreak]
+            i_data = template_df[data_name].loc[i_start:i_end].values
+            
+            ## Need start time for trace stats - first get the pandas datetime object
+            i_trace_starttime_pandasdt = template_df[datetime_name].loc[i_start]
+            
+            ## Then before adding to starttime, convert to appropriate time:
+            trace_stats['starttime'] = pd.to_datetime(i_trace_starttime_pandasdt).strftime('%Y-%m-%dT%H:%M:%S') + '.000Z'
+            
+            ## And the number of points:
+            trace_stats['npts'] = len(i_data)
+                
+            i_trace = obs.Trace(data=i_data, header=trace_stats)
+            ## Add to the stream:
+            data_stream += i_trace
+    
+    ## return the stream object:
+    return data_stream
+    
+    
+    
