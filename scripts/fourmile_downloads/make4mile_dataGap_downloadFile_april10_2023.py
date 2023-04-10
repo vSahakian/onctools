@@ -18,7 +18,7 @@ online_locations_path =  '/Users/vjs/turbidites/observational/data/datadl4fourmi
 
 
 ## Data gaps path:
-datagaps_path = '/Users/vjs/turbidites/observational/data/datadl4fourmile/gap_start_end_times.txt'
+datagaps_path = '/Users/vjs/turbidites/observational/data/datadl4fourmile/gap_start_end_times_april10_2023.txt'
 
 ## Download directory:
 # data_dir = '/home/dkilb/barkley/data/'
@@ -30,7 +30,7 @@ datagaps_path = '/Users/vjs/turbidites/observational/data/datadl4fourmile/gap_st
 #$propertyCodes = ['turbidityftu','turbidityntu','seawatertemperature','oxygen','pressure','chlorophyll']
 
 ## After inspecting plots, these are the locations where turbidity data exist:
-download_locationCodes = ['BACAX','BACHY','BACMW','BACUS']
+download_locationCodes = ['BACAX']
 
 ## KEY:
     # BACAX:  Barkley Canyon Axis
@@ -46,7 +46,7 @@ download_locationCodes = ['BACAX','BACHY','BACMW','BACUS']
 search_params_list = ['method','token','locationCode','propertyCode','dataProductCode','extension','dateFrom','dateTo','dpo_qualityControl','dpo_resample','dpo_average','dpo_dataGaps']
 
 ## Output new metdata download dataframe:
-output_onlineInstruments_path = '/Users/vjs/turbidites/observational/data/datadl4fourmile/onlineInstruments_datagaps_april2023.csv'
+output_onlineInstruments_path = '/Users/vjs/turbidites/observational/data/datadl4fourmile/onlineInstruments_datagaps_april10_2023.csv'
 
 
 # %%
@@ -69,7 +69,7 @@ online_instruments['dateTodt'] = online_instruments['dateTo'].astype('datetime64
 
 
 
-##### odify data gaps:
+##### Modify data gaps:
 data_gaps['gap_start'] = data_gaps['gap_start'].astype('datetime64')
 data_gaps['gap_end'] = data_gaps['gap_end'].astype('datetime64')
 
@@ -92,13 +92,16 @@ for i_gap_index in data_gaps.index:
     i_end = data_gaps['gap_end_roundup'].loc[i_gap_index]
     
     ## Search for the indices in the online instruments metadata df in these dates
-    i_searchindices = np.where(((online_instruments['dateFromdt'] >= i_start) & (online_instruments['dateTodt'] <= i_end)))[0]
+    i_searchindices = np.where(((online_instruments_BACAX['dateFromdt'] >= i_start) & (online_instruments_BACAX['dateTodt'] <= i_end)))[0]
     
     ## Append to big list:
     date_range_array = np.r_[date_range_array,i_searchindices]
 
+## Get unique indices to search for:
+date_range_array_unique = np.unique(date_range_array)
+
 ## Then, get the subseted metadata array for download:
-online_instruments_new = online_instruments.loc[date_range_array]
+online_instruments_new = online_instruments_BACAX.loc[date_range_array_unique]
 online_instruments_new = online_instruments_new.drop(labels=['dateFromdt','dateTodt'],axis=1)
 
 ## SAve:
