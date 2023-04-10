@@ -19,19 +19,21 @@ import logging, sys
 
 # %% Paths
 #online_locations_path =  '/Users/vjs/turbidites/observational/data/getOnlineInstruments_jul15/onlineInstruments_all.csv'
-online_locations_path =  '/home/dkilb/barkley/data_april2023_gaps/onlineInstruments_datagaps_april2023.csv'
+#online_locations_path =  '/home/dkilb/barkley/data_april2023_gaps/onlineInstruments_datagaps_april2023.csv'
+online_locations_path =  '/home/dkilb/barkley/data_april2023_gaps/onlineInstruments_datagaps_april10_2023.csv'
+
 
 ## Download directory:
-data_dir = '/home/dkilb/barkley/data_april2023_gaps/'
+data_dir = '/home/dkilb/barkley/data_april10_2023_gaps'
 
 ## Logfile path:
-logfile_path = '/home/dkilb/barkley/data_april2023_gaps/LOG_dLmultisensors_Bark_4_4_2023.log'
+logfile_path = '/home/dkilb/barkley/data_april10_2023_gaps/LOG_dLmultisensors_Bark_4_10_2023.log'
 
 ## codes etc. to search for
 #$propertyCodes = ['turbidityftu','turbidityntu','seawatertemperature','oxygen','pressure','chlorophyll']
 
 ## After inspecting plots, these are the locations where turbidity data exist:
-download_locationCodes = ['BACAX','BACHY','BACMW','BACUS']
+download_locationCodes = ['BACAX']
 
 ## KEY:
     # BACAX:  Barkley Canyon Axis
