@@ -20,7 +20,7 @@ import logging, sys
 # %% Paths
 #online_locations_path =  '/Users/vjs/turbidites/observational/data/getOnlineInstruments_jul15/onlineInstruments_all.csv'
 #online_locations_path =  '/home/dkilb/barkley/data_april2023_gaps/onlineInstruments_datagaps_april2023.csv'
-online_locations_path =  '/home/dkilb/barkley/data_april2023_gaps/onlineInstruments_datagaps_april10_2023.csv'
+online_locations_path =  '/home/dkilb/barkley/data_april10_2023_gaps/onlineInstruments_datagaps_april10_2023.csv'
 
 
 ## Download directory:
