@@ -188,6 +188,9 @@ def data_product_request(request_parameter_dictionary):
         ## Set the boolean to false
         request_ok = False
         
+        ## Also set r, the json response object, to False:
+        r = False
+        
         ## Set runId: 
         runId = False
         
@@ -377,6 +380,8 @@ def batch_test_and_download(search_params_list,presearch_parameter_df,search_ind
         i_search_parameters = { key:value for key,value in i_search_parameters_full.items() if key in search_params_list}
             
         print('\n \n ##### running from %s to %s' % (i_search_parameters['dateFrom'],i_search_parameters['dateTo']))
+        print('\n \n ##### search parameters %s' % (i_search_parameters))
+
     
     
         ## STEP 1: Run the data product delivery
