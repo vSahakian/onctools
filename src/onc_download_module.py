@@ -151,6 +151,7 @@ def data_product_delivery(delivery_parameter_dictionary,verbose=True):
             error = json.loads(str(response.content,'utf-8'))      
             print(error) # json response contains a list of errors, with an errorMessage and parameter
         else:
+            error = 'Error {} - {}'.format(response.status_code,response.reason)
             print ('Error {} - {}'.format(response.status_code,response.reason))
             
     ## Return error and data flag
@@ -387,6 +388,7 @@ def batch_test_and_download(search_params_list,presearch_parameter_df,search_ind
         ## STEP 1: Run the data product delivery
         print('running data product delivery')
         i_delivery_requestInfo, i_delivery_error, i_data_exists = data_product_delivery(i_search_parameters)
+        print(i_delivery_requestInfo)
         
         ## Append to master dataframe:
         parameter_df['delivery_error'][i_day] = i_delivery_error
@@ -400,6 +402,7 @@ def batch_test_and_download(search_params_list,presearch_parameter_df,search_ind
         else:
             ## STEP 2: Make a dictionary to run a data product request
             i_request_parameter_dictionary = make_request_dictionary(token,i_delivery_requestInfo)
+            print(i_request_parameter_dictionary)
             
             ## Run the data product request
             print('running data product request')

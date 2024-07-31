@@ -1,0 +1,8 @@
+README
+
+
+
+
+
+Download ADCP Data:
+dL_ADCP_forTemplates.py - downloads data only for templates to avoid large data downloads

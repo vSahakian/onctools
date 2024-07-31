@@ -29,7 +29,7 @@ png_data_dir = '/Users/vjs/turbidites/observational/data/barkleycanyon/BACAX/adc
 
 
 ## Logfile path:
-logfile_path = '/Users/vjs/turbidites/observational/data/testADCP/LOG_dL_ADCPtest_BACAX_7_24_2024.log'
+logfile_path = main_data_dir + '/LOG_dL_ADCPtest_BACAX_7_30_2024.log'
 
 ## codes etc. to search for
 #$propertyCodes = ['turbidityftu','turbidityntu','seawatertemperature','oxygen','pressure','chlorophyll']
@@ -85,7 +85,7 @@ endtimes =  []
 ## For each year, find the appropriate template directory and open the csv's:
 for i_templateyear in template_years:
     ## Define the csv file with the templates for this year
-    i_templatedatabase_path = os.path.join(template_main_dir,'BACAXturbidityntu'+np.str(i_templateyear),'template_interpretations_BACAX'+np.str(i_templateyear)+'.csv')
+    i_templatedatabase_path = os.path.join(template_main_dir,'BACAXturbidityntu'+str(i_templateyear),'template_interpretations_BACAX'+str(i_templateyear)+'.csv')
         
     ## Import the templates:
     i_template_database = pd.read_csv(i_templatedatabase_path,skiprows=6,header=0)
@@ -125,7 +125,7 @@ for i_templateyear in template_years:
 ## Make the download dataframes with these arrays
 ## First make one for the netcdf's:
 netcdf_presearch_dict =  {'method':np.full_like(starttimes,'request'),
-               'token':np.full_like(starttimes,token),    # replace YOUR_TOKEN_HERE with your personal token obtained from the 'Web Services API' tab at https://data.oceannetworks.ca/Profile when logged in.
+               'token':np.full_like(starttimes,token,dtype='<U64'),    # replace YOUR_TOKEN_HERE with your personal token obtained from the 'Web Services API' tab at https://data.oceannetworks.ca/Profile when logged in.
                'locationCode':np.full_like(starttimes,'BACAX'), # Barkley Canyon / Axis (POD 1)
                 'deviceCategoryCode':np.full_like(starttimes,'ADCP2MHZ'),    # 2MHz Acoustic Doppler Current Profiler
                 'dataProductCode':np.full_like(starttimes,'NTS'),           # Nortek Time Series (NTS), Nortek Daily Currents Plot (NDCP)
@@ -151,13 +151,13 @@ netcdf_presearch_df['dL_status_counter'] = np.full(len(netcdf_presearch_df),0)
 netcdf_presearch_df['filePath'] = np.full(len(netcdf_presearch_df),'No file')
     
 ## Save this presearch dataframe to file:
-netcdf_presearch_df.to_csv(main_data_dir + '/metadata/pre_download_metadata_netcdf.csv')
+netcdf_presearch_df.to_csv(png_data_dir + '/metadata/pre_download_metadata_netcdf.csv')
 
 
 ##################
 ## Second make one for png's:
 png_presearch_dict =  {'method':np.full_like(starttimes,'request'),
-               'token':np.full_like(starttimes,token),    # replace YOUR_TOKEN_HERE with your personal token obtained from the 'Web Services API' tab at https://data.oceannetworks.ca/Profile when logged in.
+               'token':np.full_like(starttimes,token,dtype='<U64'),    # replace YOUR_TOKEN_HERE with your personal token obtained from the 'Web Services API' tab at https://data.oceannetworks.ca/Profile when logged in.
                'locationCode':np.full_like(starttimes,'BACAX'), # Barkley Canyon / Axis (POD 1)
                 'deviceCategoryCode':np.full_like(starttimes,'ADCP2MHZ'),    # 2MHz Acoustic Doppler Current Profiler
                 'dataProductCode':np.full_like(starttimes,'NDCP'),           # Nortek Time Series (NTS), Nortek Daily Currents Plot (NDCP)
@@ -183,7 +183,7 @@ png_presearch_df['dL_status_counter'] = np.full(len(png_presearch_df),0)
 png_presearch_df['filePath'] = np.full(len(png_presearch_df),'No file')
     
 ## Save this presearch dataframe to file:
-png_presearch_df.to_csv(main_data_dir + '/metadata/pre_download_metadata_png.csv')
+png_presearch_df.to_csv(netcdf_data_dir + '/metadata/pre_download_metadata_png.csv')
 
 #%%   Run the data download for netcdf
 
@@ -194,8 +194,7 @@ search_indices = netcdf_presearch_df.index.values
 ## Search, download, and get the post search dataframe:
 netcdf_postsearch_df = odm.batch_test_and_download(search_params_list,netcdf_presearch_df,search_indices,token,netcdf_data_dir,download_tries)
 
-## Save this postsearch dataframe to file:
-netcdf_postsearch_df.to_csv(main_data_dir + '/metadata/download_metadata_netcdf_v0.csv')
+
 
 
 #%%   Run the data download for png
@@ -207,8 +206,7 @@ search_indices = png_presearch_df.index.values
 ## Search, download, and get the post search dataframe:
 png_postsearch_df = odm.batch_test_and_download(search_params_list,png_presearch_df,search_indices,token,png_data_dir,download_tries)
 
-## Save this postsearch dataframe to file:
-png_postsearch_df.to_csv(main_data_dir + '/metadata/download_metadata_png_v0.csv')
+
 
 # %%  OLD
 # ij_presearch_dict =  {'method':np.array(['request','request']),
